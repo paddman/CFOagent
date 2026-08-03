@@ -1,4 +1,4 @@
-# Registered on the default branch so feature-branch push events can run.
+# Registered on the default branch so feature-branch events can bootstrap safely.
 name: Bootstrap Hermes runtime and CFO overlay
 
 on:
@@ -8,7 +8,6 @@ on:
     paths:
       - ".github/workflows/bootstrap-hermes.yml"
       - ".cfo/bootstrap_payload.py"
-      - ".cfo/overlay.tar.gz.b64"
       - ".cfo/delta-v0.2.0/**"
   pull_request:
     branches:
@@ -55,7 +54,7 @@ jobs:
 
           cp /tmp/upstream-readme.md UPSTREAM_README.md
 
-      - name: Assemble and validate CFO base plus v0.2 delta
+      - name: Assemble and validate CFO v0.2 overlay
         shell: bash
         run: |
           set -euo pipefail
@@ -64,12 +63,11 @@ jobs:
             --runner-temp "$RUNNER_TEMP" \
             --github-env "$GITHUB_ENV"
 
-      - name: Apply CFO base, v0.2 delta, and official finance skills
+      - name: Apply CFO overlay and activate official finance skills
         shell: bash
         run: |
           set -euo pipefail
-          tar -xzf "$CFO_BASE_ARCHIVE" -C .
-          tar -xzf "$CFO_DELTA_ARCHIVE" -C .
+          tar -xzf "$CFO_OVERLAY_ARCHIVE" -C .
           python scripts/patch_upstream.py --upstream-sha "$UPSTREAM_SHA"
 
           test -d optional-skills/finance
@@ -82,10 +80,10 @@ jobs:
 
           CFOAgent activates the official finance skills shipped by NousResearch/hermes-agent.
           Their original author, license metadata, and source instructions are preserved in each
-          copied `SKILL.md`. At the time of bootstrap these include stock research, Excel and
-          PowerPoint authoring, DCF, comparable-company analysis, three-statement, LBO, and merger
-          modeling skills. Those upstream skills are Apache-2.0 licensed; the Hermes runtime is MIT
-          licensed. CFOAgent-specific additions remain governed by this repository's notices.
+          copied `SKILL.md`. At bootstrap time these include stock research, Excel and PowerPoint
+          authoring, DCF, comparable-company analysis, three-statement, LBO, and merger modeling.
+          Those upstream skills are Apache-2.0 licensed; the Hermes runtime is MIT licensed.
+          CFOAgent-specific additions remain governed by this repository's notices.
           EOF
 
           if ! grep -q '^# CFOAgent tracked examples$' .gitignore; then
@@ -133,38 +131,53 @@ jobs:
           test -s "$RUNNER_TEMP/board-pack.md"
           test -s "$RUNNER_TEMP/cash13.md"
 
-          python - <<'PY'
+          counts_env="$RUNNER_TEMP/cfo-skill-counts.env"
+          SKILL_COUNTS_ENV="$counts_env" python - <<'PY'
           from pathlib import Path
           import os
+          import re
 
           all_skills = sorted(Path("skills").rglob("SKILL.md"))
           official_finance = sorted(Path("skills/finance-official").glob("*/SKILL.md"))
           if len(all_skills) < 99:
-              raise SystemExit(f"Expected at least 99 active skills, found {len(all_skills)}")
+              raise SystemExit(
+                  f"Expected at least 99 active skills, found {len(all_skills)}"
+              )
           if len(official_finance) < 8:
               raise SystemExit(
-                  f"Expected at least 8 official finance skills, found {len(official_finance)}"
+                  f"Expected at least 8 official finance skills, "
+                  f"found {len(official_finance)}"
               )
 
           malformed = []
           for path in official_finance:
               text = path.read_text(encoding="utf-8")
-              if not text.startswith("---\n") or "\nname:" not in text[:1500] or "\nlicense:" not in text[:1500]:
-                  malformed.append(str(path))
+              frontmatter = text.split("---", 2)[1] if text.startswith("---\n") else ""
+              if not re.search(r"(?m)^name:\s*\S+", frontmatter):
+                  malformed.append(f"{path}: missing name")
+              if not re.search(r"(?m)^license:\s*\S+", frontmatter):
+                  malformed.append(f"{path}: missing license")
           if malformed:
-              raise SystemExit("Malformed official finance skills: " + ", ".join(malformed))
+              raise SystemExit(
+                  "Malformed official finance skills:\n- " + "\n- ".join(malformed)
+              )
 
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-              env_file.write(f"ACTIVE_SKILL_COUNT={len(all_skills)}\n")
-              env_file.write(f"OFFICIAL_FINANCE_SKILL_COUNT={len(official_finance)}\n")
+          counts_path = Path(os.environ["SKILL_COUNTS_ENV"])
+          counts_path.write_text(
+              f"ACTIVE_SKILL_COUNT={len(all_skills)}\n"
+              f"OFFICIAL_FINANCE_SKILL_COUNT={len(official_finance)}\n",
+              encoding="ascii",
+          )
           print(
               f"Active skills: {len(all_skills)}; "
               f"official finance skills: {len(official_finance)}"
           )
           PY
 
-          printf 'passed\nupstream=%s\nbase_payload=%s\ndelta_payload=%s\nskills=%s\nofficial_finance=%s\n' \
-            "$UPSTREAM_SHA" "$CFO_BASE_SHA256" "$CFO_DELTA_SHA256" \
+          source "$counts_env"
+          cat "$counts_env" >> "$GITHUB_ENV"
+          printf 'passed\nupstream=%s\noverlay=%s\nvariant=%s\nskills=%s\nofficial_finance=%s\n' \
+            "$UPSTREAM_SHA" "$CFO_OVERLAY_SHA256" "$CFO_OVERLAY_VARIANT" \
             "$ACTIVE_SKILL_COUNT" "$OFFICIAL_FINANCE_SKILL_COUNT" \
             > .cfo/bootstrap-status
 
@@ -202,9 +215,10 @@ jobs:
             echo "## CFOAgent bootstrap"
             echo ""
             echo "- Hermes upstream: \`$UPSTREAM_SHA\`"
-            echo "- CFO base payload: \`$CFO_BASE_SHA256\`"
-            echo "- CFO v0.2 delta: \`$CFO_DELTA_SHA256\` from $PAYLOAD_PART_COUNT verified parts"
-            echo "- CFO skill documents in delta: $DELTA_SKILL_DOC_COUNT"
+            echo "- CFO v0.2 overlay: \`$CFO_OVERLAY_SHA256\`"
+            echo "- Payload variant: \`$CFO_OVERLAY_VARIANT\`"
+            echo "- Verified payload parts: $PAYLOAD_PART_COUNT"
+            echo "- CFO skill documents in payload: $PAYLOAD_SKILL_DOC_COUNT"
             echo "- Active skill catalog: $ACTIVE_SKILL_COUNT skills"
             echo "- Official finance skills activated: $OFFICIAL_FINANCE_SKILL_COUNT"
             echo "- Deterministic tests and 13-week cash forecast smoke test: passed"
