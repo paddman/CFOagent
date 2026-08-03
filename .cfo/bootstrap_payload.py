@@ -9,6 +9,7 @@ import hashlib
 import io
 import os
 import tarfile
+import zlib
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Iterable
@@ -127,7 +128,7 @@ def inspect_archive(raw: bytes, label: str) -> frozenset[str]:
     names: set[str] = set()
     try:
         archive = tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz")
-    except (tarfile.TarError, OSError, EOFError) as exc:
+    except (tarfile.TarError, OSError, EOFError, zlib.error) as exc:
         raise ValueError(f"invalid tar.gz: {exc}") from exc
 
     try:
@@ -154,7 +155,7 @@ def inspect_archive(raw: bytes, label: str) -> frozenset[str]:
                 ):
                     raise ValueError(f"protected workflow: {member.name}")
                 names.add(normalized)
-    except (tarfile.TarError, OSError, EOFError) as exc:
+    except (tarfile.TarError, OSError, EOFError, zlib.error) as exc:
         raise ValueError(f"corrupt tar stream: {exc}") from exc
 
     return frozenset(names)
