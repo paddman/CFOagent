@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve, validate, and materialize the verified CFOAgent v0.2 overlay."""
+"""Recover the legacy CFO base and resolve the verified CFOAgent v0.2 overlay."""
 
 from __future__ import annotations
 
@@ -8,14 +8,15 @@ import base64
 import hashlib
 import io
 import os
+import shutil
 import tarfile
 import zlib
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Iterable
 
-# Some payload chunks were later replaced with verified split chunks. Try the
-# verified sequence first, while retaining deterministic fallbacks for recovery.
+# Later commits replaced selected chunks with verified split chunks. Evaluate
+# the plausible deterministic sequences and select the first valid archive.
 PAYLOAD_VARIANTS: tuple[tuple[str, tuple[str, ...]], ...] = (
     (
         "verified-split",
@@ -78,8 +79,8 @@ PAYLOAD_VARIANTS: tuple[tuple[str, tuple[str, ...]], ...] = (
 )
 
 ALLOWED_WORKFLOWS = {".github/workflows/cfo-ci.yml"}
-REQUIRED_MEMBERS = {
-    "cfo_agent/__init__.py",
+DELTA_REQUIRED = {"cfo_agent/__init__.py"}
+RECOVERY_REQUIRED = {
     "cfo_agent/cli.py",
     "scripts/patch_upstream.py",
     "scripts/sync_upstream.py",
@@ -94,6 +95,16 @@ class PayloadCandidate:
     padding: int
     members: frozenset[str]
     skill_docs: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class RecoveryResult:
+    directory: Path
+    members: frozenset[str]
+    decompressed_bytes: int
+    compressed_error_offset: int
+    gzip_error: str
+    tar_error: str
 
 
 def clean_base64(text: str) -> str:
@@ -124,6 +135,30 @@ def normalize_member_name(name: str) -> str:
     return normalized.rstrip("/")
 
 
+def validate_member(member: tarfile.TarInfo, label: str) -> str:
+    path = PurePosixPath(member.name)
+    if path.is_absolute() or ".." in path.parts:
+        raise ValueError(f"unsafe path in {label}: {member.name}")
+    if not (member.isdir() or member.isfile()):
+        raise ValueError(
+            f"unsupported tar member in {label}: {member.name} ({member.type!r})"
+        )
+
+    normalized = normalize_member_name(member.name)
+    if normalized in {"", "."}:
+        return ""
+    if normalized in {".git", ".github/workflows/bootstrap-hermes.yml"}:
+        raise ValueError(f"protected path in {label}: {member.name}")
+    if normalized.startswith(".git/"):
+        raise ValueError(f"protected path in {label}: {member.name}")
+    if (
+        normalized.startswith(".github/workflows/")
+        and normalized not in ALLOWED_WORKFLOWS
+    ):
+        raise ValueError(f"protected workflow in {label}: {member.name}")
+    return normalized
+
+
 def inspect_archive(raw: bytes, label: str) -> frozenset[str]:
     names: set[str] = set()
     try:
@@ -134,35 +169,17 @@ def inspect_archive(raw: bytes, label: str) -> frozenset[str]:
     try:
         with archive:
             for member in archive.getmembers():
-                path = PurePosixPath(member.name)
-                if path.is_absolute() or ".." in path.parts:
-                    raise ValueError(f"unsafe path: {member.name}")
-                if not (member.isdir() or member.isfile()):
-                    raise ValueError(
-                        f"unsupported tar member: {member.name} ({member.type!r})"
-                    )
-
-                normalized = normalize_member_name(member.name)
-                if normalized in {"", "."}:
-                    continue
-                if normalized in {".git", ".github/workflows/bootstrap-hermes.yml"}:
-                    raise ValueError(f"protected path: {member.name}")
-                if normalized.startswith(".git/"):
-                    raise ValueError(f"protected path: {member.name}")
-                if (
-                    normalized.startswith(".github/workflows/")
-                    and normalized not in ALLOWED_WORKFLOWS
-                ):
-                    raise ValueError(f"protected workflow: {member.name}")
-                names.add(normalized)
+                normalized = validate_member(member, label)
+                if normalized:
+                    names.add(normalized)
     except (tarfile.TarError, OSError, EOFError, zlib.error) as exc:
         raise ValueError(f"corrupt tar stream: {exc}") from exc
 
     return frozenset(names)
 
 
-def missing_members(names: Iterable[str]) -> tuple[str, ...]:
-    return tuple(sorted(REQUIRED_MEMBERS - set(names)))
+def missing_members(names: Iterable[str], required: set[str]) -> tuple[str, ...]:
+    return tuple(sorted(required - set(names)))
 
 
 def append_github_env(path: Path, values: dict[str, str | int]) -> None:
@@ -210,7 +227,7 @@ def assemble_variant(
     )
     raw, padding = decode_payload(encoded, variant)
     members = inspect_archive(raw, variant)
-    missing = missing_members(members)
+    missing = missing_members(members, DELTA_REQUIRED)
     if missing:
         preview = ", ".join(sorted(members)[:15])
         raise ValueError(
@@ -256,6 +273,110 @@ def resolve_payload(delta_dir: Path) -> PayloadCandidate:
     )
 
 
+def decompress_gzip_prefix(raw: bytes) -> tuple[bytes, int, str]:
+    decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
+    output = bytearray()
+    error_offset = len(raw)
+    error_message = ""
+
+    # Byte-wise input preserves the longest safe prefix when the old gzip
+    # stream contains a corrupt compressed block.
+    for offset, value in enumerate(raw):
+        try:
+            output.extend(decompressor.decompress(bytes((value,))))
+        except zlib.error as exc:
+            error_offset = offset
+            error_message = str(exc)
+            break
+    else:
+        try:
+            output.extend(decompressor.flush())
+        except zlib.error as exc:
+            error_message = str(exc)
+
+    return bytes(output), error_offset, error_message
+
+
+def recover_tar_prefix(tar_bytes: bytes, destination: Path) -> RecoveryResult:
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.mkdir(parents=True, exist_ok=True)
+
+    recovered: set[str] = set()
+    tar_error = ""
+    archive: tarfile.TarFile | None = None
+
+    try:
+        archive = tarfile.open(fileobj=io.BytesIO(tar_bytes), mode="r:")
+        while True:
+            try:
+                member = archive.next()
+            except (tarfile.TarError, OSError, EOFError) as exc:
+                tar_error = str(exc)
+                break
+            if member is None:
+                break
+
+            try:
+                normalized = validate_member(member, "legacy CFO base")
+            except ValueError as exc:
+                raise SystemExit(str(exc)) from exc
+            if not normalized:
+                continue
+
+            target = destination / PurePosixPath(normalized)
+            if member.isdir():
+                target.mkdir(parents=True, exist_ok=True)
+                recovered.add(normalized)
+                continue
+
+            extracted = archive.extractfile(member)
+            if extracted is None:
+                tar_error = f"unable to read {normalized}"
+                break
+            try:
+                data = extracted.read()
+            except (tarfile.TarError, OSError, EOFError) as exc:
+                tar_error = f"{normalized}: {exc}"
+                break
+            if len(data) != member.size:
+                tar_error = (
+                    f"{normalized}: expected {member.size} bytes, recovered {len(data)}"
+                )
+                break
+
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+            recovered.add(normalized)
+    except (tarfile.TarError, OSError, EOFError) as exc:
+        tar_error = str(exc)
+    finally:
+        if archive is not None:
+            archive.close()
+
+    return RecoveryResult(
+        directory=destination,
+        members=frozenset(recovered),
+        decompressed_bytes=len(tar_bytes),
+        compressed_error_offset=0,
+        gzip_error="",
+        tar_error=tar_error,
+    )
+
+
+def recover_legacy_base(base_raw: bytes, destination: Path) -> RecoveryResult:
+    tar_prefix, error_offset, gzip_error = decompress_gzip_prefix(base_raw)
+    partial = recover_tar_prefix(tar_prefix, destination)
+    return RecoveryResult(
+        directory=partial.directory,
+        members=partial.members,
+        decompressed_bytes=len(tar_prefix),
+        compressed_error_offset=error_offset,
+        gzip_error=gzip_error,
+        tar_error=partial.tar_error,
+    )
+
+
 def main() -> int:
     args = parse_args()
     repo_root = args.repo_root.resolve()
@@ -269,20 +390,59 @@ def main() -> int:
         raise SystemExit(f"Missing CFO payload directory: {delta_dir}")
 
     candidate = resolve_payload(delta_dir)
-    overlay_archive = runner_temp / "cfo-v0.2-overlay.tar.gz"
+
+    legacy_path = repo_root / ".cfo" / "overlay.tar.gz.b64"
+    if not legacy_path.is_file() or legacy_path.stat().st_size == 0:
+        raise SystemExit(f"Missing legacy CFO base payload: {legacy_path}")
+    try:
+        legacy_raw, legacy_padding = decode_payload(
+            legacy_path.read_text(encoding="ascii"), "legacy CFO base"
+        )
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+
+    recovery = recover_legacy_base(
+        legacy_raw, runner_temp / "cfo-recovered-base"
+    )
+    missing_recovery = missing_members(recovery.members, RECOVERY_REQUIRED)
+    print(
+        "Legacy base recovery: "
+        f"compressed={len(legacy_raw):,} bytes, "
+        f"decompressed_prefix={recovery.decompressed_bytes:,} bytes, "
+        f"files={len(recovery.members)}, "
+        f"gzip_error_offset={recovery.compressed_error_offset}, "
+        f"gzip_error={recovery.gzip_error or 'none'}, "
+        f"tar_error={recovery.tar_error or 'none'}"
+    )
+    if missing_recovery:
+        preview = ", ".join(sorted(recovery.members)[:40])
+        raise SystemExit(
+            "Legacy CFO base recovery is incomplete; missing: "
+            + ", ".join(missing_recovery)
+            + f". Recovered preview: {preview}"
+        )
+
+    overlay_archive = runner_temp / "cfo-v0.2-delta.tar.gz"
     overlay_archive.write_bytes(candidate.raw)
 
-    digest = hashlib.sha256(candidate.raw).hexdigest()
+    overlay_digest = hashlib.sha256(candidate.raw).hexdigest()
+    legacy_digest = hashlib.sha256(legacy_raw).hexdigest()
     (repo_root / ".cfo" / "overlay.sha256").write_text(
-        f"{digest}  cfo-v0.2-overlay.tar.gz\n",
+        f"{legacy_digest}  legacy-cfo-base-corrupt.tar.gz\n"
+        f"{overlay_digest}  cfo-v0.2-delta.tar.gz\n",
         encoding="ascii",
     )
 
     append_github_env(
         github_env,
         {
+            "CFO_RECOVERY_DIR": recovery.directory,
+            "CFO_RECOVERED_FILE_COUNT": len(recovery.members),
+            "CFO_RECOVERED_BYTES": recovery.decompressed_bytes,
+            "CFO_LEGACY_SHA256": legacy_digest,
+            "CFO_LEGACY_PADDING": legacy_padding,
             "CFO_OVERLAY_ARCHIVE": overlay_archive,
-            "CFO_OVERLAY_SHA256": digest,
+            "CFO_OVERLAY_SHA256": overlay_digest,
             "CFO_OVERLAY_PADDING": candidate.padding,
             "CFO_OVERLAY_VARIANT": candidate.variant,
             "PAYLOAD_PART_COUNT": len(candidate.parts),
@@ -291,10 +451,10 @@ def main() -> int:
     )
 
     print(
-        "Validated CFO v0.2 overlay: "
+        "Validated CFO v0.2 delta: "
         f"variant={candidate.variant}, bytes={len(candidate.raw):,}, "
         f"parts={len(candidate.parts)}, skills={len(candidate.skill_docs)}, "
-        f"padding_added={candidate.padding}, sha256={digest}"
+        f"padding_added={candidate.padding}, sha256={overlay_digest}"
     )
     return 0
 
