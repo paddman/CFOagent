@@ -1,37 +1,30 @@
+# Registered on the default branch so feature-branch push events can run.
 name: Bootstrap Hermes runtime and CFO overlay
 
 on:
   push:
-    branches: [feat/cfo-hermes-bootstrap]
+    branches:
+      - feat/cfo-hermes-bootstrap
     paths:
       - ".github/workflows/bootstrap-hermes.yml"
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/bootstrap-hermes.yml"
-      - ".cfo/overlay.tar.gz.b64"
-  schedule:
-    - cron: "*/5 * * * *"
+      - ".cfo/delta-v0.2.0/**"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: cfo-hermes-bootstrap
+  group: cfo-hermes-bootstrap-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   import-and-customize:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Checkout CFOAgent seed
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'schedule' && 'feat/cfo-hermes-bootstrap' || github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Import Hermes Agent main
@@ -53,13 +46,108 @@ jobs:
 
           cp /tmp/upstream-readme.md UPSTREAM_README.md
 
-      - name: Apply CFO overlay
+      - name: Assemble and validate CFO v0.2 payload
         shell: bash
         run: |
           set -euo pipefail
-          test -s .cfo/overlay.tar.gz.b64
+          parts=(
+            .cfo/delta-v0.2.0/part-00
+            .cfo/delta-v0.2.0/part-01
+            .cfo/delta-v0.2.0/part-01a
+            .cfo/delta-v0.2.0/part-02
+            .cfo/delta-v0.2.0/part-03
+            .cfo/delta-v0.2.0/part-03a
+            .cfo/delta-v0.2.0/part-03b
+            .cfo/delta-v0.2.0/part-04a
+            .cfo/delta-v0.2.0/part-04b
+            .cfo/delta-v0.2.0/part-05a
+            .cfo/delta-v0.2.0/part-05b
+            .cfo/delta-v0.2.0/part-06
+          )
+
+          for part in "${parts[@]}"; do
+            test -s "$part" || { echo "Missing payload part: $part" >&2; exit 1; }
+          done
+
+          assembled="$RUNNER_TEMP/cfo-overlay.tar.gz.b64"
+          cat "${parts[@]}" | tr -d '\r\n\t ' > "$assembled"
+          install -m 0644 "$assembled" .cfo/overlay.tar.gz.b64
+          echo "PAYLOAD_PART_COUNT=${#parts[@]}" >> "$GITHUB_ENV"
+
+          python - <<'PY'
+          from __future__ import annotations
+
+          import base64
+          import hashlib
+          import io
+          import os
+          import tarfile
+          from pathlib import Path, PurePosixPath
+
+          payload_path = Path(".cfo/overlay.tar.gz.b64")
+          encoded = payload_path.read_text(encoding="ascii").strip()
+          try:
+              raw = base64.b64decode(encoded, validate=True)
+          except Exception as exc:
+              raise SystemExit(f"Invalid base64 CFO payload: {exc}") from exc
+
+          if raw[:2] != b"\x1f\x8b":
+              raise SystemExit("CFO payload is not a gzip archive")
+
+          required = {
+              "cfo_agent/__init__.py",
+              "cfo_agent/cli.py",
+              "scripts/patch_upstream.py",
+              "scripts/sync_upstream.py",
+          }
+          names: set[str] = set()
+          with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as archive:
+              for member in archive.getmembers():
+                  path = PurePosixPath(member.name)
+                  if path.is_absolute() or ".." in path.parts:
+                      raise SystemExit(f"Unsafe path in CFO payload: {member.name}")
+                  if member.issym() or member.islnk():
+                      raise SystemExit(f"Links are not allowed in CFO payload: {member.name}")
+                  normalized = member.name[2:] if member.name.startswith("./") else member.name
+                  if normalized.startswith(".git/") or normalized.startswith(".github/workflows/"):
+                      raise SystemExit(f"Protected path in CFO payload: {member.name}")
+                  names.add(normalized.rstrip("/"))
+
+          missing = sorted(required - names)
+          if missing:
+              raise SystemExit(f"CFO payload is incomplete; missing: {', '.join(missing)}")
+
+          digest = hashlib.sha256(raw).hexdigest()
+          Path(".cfo/overlay.sha256").write_text(
+              f"{digest}  overlay.tar.gz\n", encoding="ascii"
+          )
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+              env_file.write(f"CFO_PAYLOAD_SHA256={digest}\n")
+          print(f"Validated CFO payload: {len(raw):,} bytes, sha256={digest}")
+          PY
+
+      - name: Apply CFO overlay and activate finance skills
+        shell: bash
+        run: |
+          set -euo pipefail
           base64 --decode .cfo/overlay.tar.gz.b64 | tar -xzf - -C .
           python scripts/patch_upstream.py --upstream-sha "$UPSTREAM_SHA"
+
+          test -d optional-skills/finance
+          rm -rf skills/finance-official
+          mkdir -p skills/finance-official
+          cp -a optional-skills/finance/. skills/finance-official/
+
+          cat > THIRD_PARTY_FINANCE_SKILLS.md <<'EOF'
+          # Third-Party Finance Skills
+
+          CFOAgent activates the official finance skills shipped by NousResearch/hermes-agent.
+          Their original author, license metadata, and source instructions are preserved in each
+          copied `SKILL.md`. At the time of bootstrap these include stock research, Excel and
+          PowerPoint authoring, DCF, comparable-company analysis, three-statement, LBO, and merger
+          modeling skills. Those upstream skills are Apache-2.0 licensed; the Hermes runtime is MIT
+          licensed. CFOAgent-specific additions remain governed by this repository's notices.
+          EOF
 
           if ! grep -q '^# CFOAgent tracked examples$' .gitignore; then
             cat >> .gitignore <<'EOF'
@@ -87,7 +175,7 @@ jobs:
           )
           PY
 
-      - name: Verify deterministic CFO layer
+      - name: Verify deterministic CFO layer and skill catalog
         shell: bash
         env:
           PYTHONWARNINGS: error::ResourceWarning
@@ -101,7 +189,41 @@ jobs:
             examples/sample_cash_13_week.csv --output "$RUNNER_TEMP/cash13.md"
           test -s "$RUNNER_TEMP/board-pack.md"
           test -s "$RUNNER_TEMP/cash13.md"
-          printf 'passed\nupstream=%s\n' "$UPSTREAM_SHA" > .cfo/bootstrap-status
+
+          python - <<'PY'
+          from pathlib import Path
+          import os
+
+          all_skills = sorted(Path("skills").rglob("SKILL.md"))
+          official_finance = sorted(Path("skills/finance-official").glob("*/SKILL.md"))
+          if len(all_skills) < 99:
+              raise SystemExit(f"Expected at least 99 active skills, found {len(all_skills)}")
+          if len(official_finance) < 8:
+              raise SystemExit(
+                  f"Expected at least 8 official finance skills, found {len(official_finance)}"
+              )
+
+          malformed = []
+          for path in official_finance:
+              text = path.read_text(encoding="utf-8")
+              if not text.startswith("---\n") or "\nname:" not in text[:1500] or "\nlicense:" not in text[:1500]:
+                  malformed.append(str(path))
+          if malformed:
+              raise SystemExit("Malformed official finance skills: " + ", ".join(malformed))
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+              env_file.write(f"ACTIVE_SKILL_COUNT={len(all_skills)}\n")
+              env_file.write(f"OFFICIAL_FINANCE_SKILL_COUNT={len(official_finance)}\n")
+          print(
+              f"Active skills: {len(all_skills)}; "
+              f"official finance skills: {len(official_finance)}"
+          )
+          PY
+
+          printf 'passed\nupstream=%s\npayload=%s\nskills=%s\nofficial_finance=%s\n' \
+            "$UPSTREAM_SHA" "$CFO_PAYLOAD_SHA256" \
+            "$ACTIVE_SKILL_COUNT" "$OFFICIAL_FINANCE_SKILL_COUNT" \
+            > .cfo/bootstrap-status
 
       - name: Commit imported runtime and CFO system
         shell: bash
@@ -110,17 +232,25 @@ jobs:
           git config user.name "CFOAgent Bootstrap"
           git config user.email "actions@users.noreply.github.com"
           git add -A
-          git add -f \
+
+          for sample in \
             examples/sample_financials.csv \
             examples/sample_budget.csv \
             examples/sample_long_thai.csv \
-            examples/sample_cash_13_week.csv
+            examples/sample_cash_13_week.csv; do
+            if [[ -f "$sample" ]]; then
+              git add -f -- "$sample"
+            fi
+          done
+
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "feat: import Hermes runtime and add CFO operating system"
-          git push origin HEAD:feat/cfo-hermes-bootstrap
+
+          git commit -m "feat: import Hermes runtime and activate CFO finance skills"
+          target_branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          git push origin "HEAD:${target_branch}"
 
       - name: Write bootstrap summary
         shell: bash
@@ -129,7 +259,9 @@ jobs:
             echo "## CFOAgent bootstrap"
             echo ""
             echo "- Hermes upstream: \`$UPSTREAM_SHA\`"
-            echo "- CFO deterministic tests: passed"
-            echo "- 13-week cash forecast smoke test: passed"
+            echo "- CFO payload: \`$CFO_PAYLOAD_SHA256\` from $PAYLOAD_PART_COUNT verified parts"
+            echo "- Active skill catalog: $ACTIVE_SKILL_COUNT skills"
+            echo "- Official finance skills activated: $OFFICIAL_FINANCE_SKILL_COUNT"
+            echo "- Deterministic tests and 13-week cash forecast smoke test: passed"
             echo "- Runtime copied without upstream workflow files"
           } >> "$GITHUB_STEP_SUMMARY"
