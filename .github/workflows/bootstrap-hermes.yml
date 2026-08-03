@@ -7,6 +7,7 @@ on:
       - feat/cfo-hermes-bootstrap
     paths:
       - ".github/workflows/bootstrap-hermes.yml"
+      - ".cfo/bootstrap_payload.py"
       - ".cfo/overlay.tar.gz.b64"
       - ".cfo/delta-v0.2.0/**"
   pull_request:
@@ -58,141 +59,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s .cfo/overlay.tar.gz.b64
-
-          parts=(
-            .cfo/delta-v0.2.0/part-00
-            .cfo/delta-v0.2.0/part-01
-            .cfo/delta-v0.2.0/part-01a
-            .cfo/delta-v0.2.0/part-02
-            .cfo/delta-v0.2.0/part-03
-            .cfo/delta-v0.2.0/part-03a
-            .cfo/delta-v0.2.0/part-03b
-            .cfo/delta-v0.2.0/part-04a
-            .cfo/delta-v0.2.0/part-04b
-            .cfo/delta-v0.2.0/part-05a
-            .cfo/delta-v0.2.0/part-05b
-            .cfo/delta-v0.2.0/part-06
-          )
-
-          for part in "${parts[@]}"; do
-            test -s "$part" || { echo "Missing payload part: $part" >&2; exit 1; }
-          done
-
-          delta_b64="$RUNNER_TEMP/cfo-v0.2-delta.tar.gz.b64"
-          cat "${parts[@]}" | tr -d '\r\n\t ' > "$delta_b64"
-          echo "CFO_DELTA_B64_PATH=$delta_b64" >> "$GITHUB_ENV"
-          echo "PAYLOAD_PART_COUNT=${#parts[@]}" >> "$GITHUB_ENV"
-
-          python - <<'PY'
-          from __future__ import annotations
-
-          import base64
-          import hashlib
-          import io
-          import os
-          import tarfile
-          from pathlib import Path, PurePosixPath
-
-          ALLOWED_WORKFLOWS = {".github/workflows/cfo-ci.yml"}
-
-          def decode_payload(path: Path, label: str) -> tuple[bytes, int]:
-              encoded = "".join(path.read_text(encoding="ascii").split())
-              if "=" in encoded.rstrip("="):
-                  raise SystemExit(f"{label} contains embedded base64 padding")
-              padding = (-len(encoded)) % 4
-              encoded += "=" * padding
-              try:
-                  raw = base64.b64decode(encoded, validate=True)
-              except Exception as exc:
-                  raise SystemExit(f"Invalid base64 in {label}: {exc}") from exc
-              if raw[:2] != b"\x1f\x8b":
-                  raise SystemExit(f"{label} is not a gzip archive")
-              return raw, padding
-
-          def inspect_archive(raw: bytes, label: str) -> set[str]:
-              names: set[str] = set()
-              try:
-                  archive = tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz")
-              except tarfile.TarError as exc:
-                  raise SystemExit(f"Invalid tar archive in {label}: {exc}") from exc
-
-              with archive:
-                  for member in archive.getmembers():
-                      path = PurePosixPath(member.name)
-                      if path.is_absolute() or ".." in path.parts:
-                          raise SystemExit(f"Unsafe path in {label}: {member.name}")
-                      if member.issym() or member.islnk():
-                          raise SystemExit(f"Links are not allowed in {label}: {member.name}")
-                      normalized = member.name[2:] if member.name.startswith("./") else member.name
-                      normalized = normalized.rstrip("/")
-                      if normalized.startswith(".git/"):
-                          raise SystemExit(f"Protected path in {label}: {member.name}")
-                      if (
-                          normalized.startswith(".github/workflows/")
-                          and normalized not in ALLOWED_WORKFLOWS
-                      ):
-                          raise SystemExit(f"Protected workflow in {label}: {member.name}")
-                      names.add(normalized)
-              return names
-
-          base_raw, base_padding = decode_payload(
-              Path(".cfo/overlay.tar.gz.b64"), "CFO base overlay"
-          )
-          delta_raw, delta_padding = decode_payload(
-              Path(os.environ["CFO_DELTA_B64_PATH"]), "CFO v0.2 delta"
-          )
-
-          base_names = inspect_archive(base_raw, "CFO base overlay")
-          delta_names = inspect_archive(delta_raw, "CFO v0.2 delta")
-
-          base_required = {
-              "cfo_agent/cli.py",
-              "scripts/patch_upstream.py",
-              "scripts/sync_upstream.py",
-          }
-          missing_base = sorted(base_required - base_names)
-          if missing_base:
-              raise SystemExit(
-                  "CFO base overlay is incomplete; missing: " + ", ".join(missing_base)
-              )
-
-          if "cfo_agent/__init__.py" not in delta_names:
-              raise SystemExit("CFO v0.2 delta is missing cfo_agent/__init__.py")
-          delta_skill_docs = sorted(
-              name for name in delta_names if name.endswith("/SKILL.md")
-          )
-          if not delta_skill_docs:
-              raise SystemExit("CFO v0.2 delta contains no SKILL.md files")
-
-          base_archive = Path(os.environ["RUNNER_TEMP"]) / "cfo-base-overlay.tar.gz"
-          delta_archive = Path(os.environ["RUNNER_TEMP"]) / "cfo-v0.2-delta.tar.gz"
-          base_archive.write_bytes(base_raw)
-          delta_archive.write_bytes(delta_raw)
-
-          base_digest = hashlib.sha256(base_raw).hexdigest()
-          delta_digest = hashlib.sha256(delta_raw).hexdigest()
-          Path(".cfo/overlay.sha256").write_text(
-              f"{base_digest}  cfo-base-overlay.tar.gz\n"
-              f"{delta_digest}  cfo-v0.2-delta.tar.gz\n",
-              encoding="ascii",
-          )
-
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-              env_file.write(f"CFO_BASE_ARCHIVE={base_archive}\n")
-              env_file.write(f"CFO_DELTA_ARCHIVE={delta_archive}\n")
-              env_file.write(f"CFO_BASE_SHA256={base_digest}\n")
-              env_file.write(f"CFO_DELTA_SHA256={delta_digest}\n")
-              env_file.write(f"CFO_BASE_PADDING={base_padding}\n")
-              env_file.write(f"CFO_DELTA_PADDING={delta_padding}\n")
-              env_file.write(f"DELTA_SKILL_DOC_COUNT={len(delta_skill_docs)}\n")
-
-          print(
-              "Validated CFO payloads: "
-              f"base={len(base_raw):,} bytes, delta={len(delta_raw):,} bytes, "
-              f"delta_skill_docs={len(delta_skill_docs)}"
-          )
-          PY
+          python .cfo/bootstrap_payload.py \
+            --repo-root "$GITHUB_WORKSPACE" \
+            --runner-temp "$RUNNER_TEMP" \
+            --github-env "$GITHUB_ENV"
 
       - name: Apply CFO base, v0.2 delta, and official finance skills
         shell: bash
@@ -250,7 +120,11 @@ jobs:
           PYTHONWARNINGS: error::ResourceWarning
         run: |
           set -euo pipefail
-          python -m compileall -q cfo_agent scripts/patch_upstream.py scripts/sync_upstream.py
+          python -m compileall -q \
+            cfo_agent \
+            scripts/patch_upstream.py \
+            scripts/sync_upstream.py \
+            .cfo/bootstrap_payload.py
           python -m unittest discover -s tests/cfo_agent -v
           python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" demo \
             --output "$RUNNER_TEMP/board-pack.md"
