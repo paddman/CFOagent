@@ -11,6 +11,8 @@ on:
     paths:
       - ".github/workflows/bootstrap-hermes.yml"
       - ".cfo/overlay.tar.gz.b64"
+  schedule:
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -29,7 +31,7 @@ jobs:
       - name: Checkout CFOAgent seed
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event_name == 'schedule' && 'feat/cfo-hermes-bootstrap' || github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Import Hermes Agent main
