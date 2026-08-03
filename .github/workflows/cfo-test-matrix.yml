@@ -1,0 +1,65 @@
+name: CFOAgent Test Matrix
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  module-tests:
+    name: ${{ matrix.module }} on Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+        module:
+          - test_analytics.py
+          - test_cashflow.py
+          - test_accounting.py
+          - test_policy_audit_sqlite.py
+          - test_skills_router.py
+          - test_cli_io.py
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Compile CFOAgent
+        run: python -m compileall -q cfo_agent scripts
+
+      - name: Run ${{ matrix.module }}
+        run: python -m unittest discover -s tests/cfo_agent -p '${{ matrix.module }}' -v
+
+  cli-smoke:
+    name: CLI smoke on Python 3.11
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run CLI smoke tests
+        run: |
+          set -euo pipefail
+          python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" demo \
+            --output "$RUNNER_TEMP/board-pack.md"
+          python -m cfo_agent.cli cash13 examples/sample_cash_13_week.csv \
+            --output "$RUNNER_TEMP/cash13.md"
+          python -m cfo_agent.cli skills "IFRS 15 revenue recognition" \
+            --json --output "$RUNNER_TEMP/skills.json"
+          test -s "$RUNNER_TEMP/board-pack.md"
+          test -s "$RUNNER_TEMP/cash13.md"
+          test -s "$RUNNER_TEMP/skills.json"

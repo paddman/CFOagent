@@ -1,0 +1,17 @@
+{
+  "bear": {
+    "gross_margin_delta_pct": -2,
+    "opex_growth_pct": 2,
+    "revenue_growth_pct": -5
+  },
+  "base": {
+    "gross_margin_delta_pct": 0.5,
+    "opex_growth_pct": 4,
+    "revenue_growth_pct": 8
+  },
+  "bull": {
+    "gross_margin_delta_pct": 2,
+    "opex_growth_pct": 7,
+    "revenue_growth_pct": 15
+  }
+}
