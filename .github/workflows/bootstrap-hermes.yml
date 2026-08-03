@@ -63,10 +63,11 @@ jobs:
             --runner-temp "$RUNNER_TEMP" \
             --github-env "$GITHUB_ENV"
 
-      - name: Apply CFO overlay and activate official finance skills
+      - name: Restore CFO base, apply v0.2 delta, and activate finance skills
         shell: bash
         run: |
           set -euo pipefail
+          cp -a "$CFO_RECOVERY_DIR"/. .
           tar -xzf "$CFO_OVERLAY_ARCHIVE" -C .
           python scripts/patch_upstream.py --upstream-sha "$UPSTREAM_SHA"
 
@@ -176,8 +177,9 @@ jobs:
 
           source "$counts_env"
           cat "$counts_env" >> "$GITHUB_ENV"
-          printf 'passed\nupstream=%s\noverlay=%s\nvariant=%s\nskills=%s\nofficial_finance=%s\n' \
-            "$UPSTREAM_SHA" "$CFO_OVERLAY_SHA256" "$CFO_OVERLAY_VARIANT" \
+          printf 'passed\nupstream=%s\nlegacy_base=%s\noverlay=%s\nvariant=%s\nskills=%s\nofficial_finance=%s\n' \
+            "$UPSTREAM_SHA" "$CFO_LEGACY_SHA256" "$CFO_OVERLAY_SHA256" \
+            "$CFO_OVERLAY_VARIANT" \
             "$ACTIVE_SKILL_COUNT" "$OFFICIAL_FINANCE_SKILL_COUNT" \
             > .cfo/bootstrap-status
 
@@ -215,7 +217,9 @@ jobs:
             echo "## CFOAgent bootstrap"
             echo ""
             echo "- Hermes upstream: \`$UPSTREAM_SHA\`"
-            echo "- CFO v0.2 overlay: \`$CFO_OVERLAY_SHA256\`"
+            echo "- Recovered legacy base: \`$CFO_LEGACY_SHA256\`"
+            echo "- Recovered base files: $CFO_RECOVERED_FILE_COUNT from $CFO_RECOVERED_BYTES decompressed bytes"
+            echo "- CFO v0.2 delta: \`$CFO_OVERLAY_SHA256\`"
             echo "- Payload variant: \`$CFO_OVERLAY_VARIANT\`"
             echo "- Verified payload parts: $PAYLOAD_PART_COUNT"
             echo "- CFO skill documents in payload: $PAYLOAD_SKILL_DOC_COUNT"
