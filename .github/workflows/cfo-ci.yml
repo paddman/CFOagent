@@ -1,0 +1,79 @@
+name: CFOAgent CI
+
+on:
+  push:
+    branches: [main, feat/cfo-hermes-bootstrap]
+    paths:
+      - "cfo_agent/**"
+      - "skills/finance-cfo/**"
+      - "skills/finance-official/**"
+      - "tests/cfo_agent/**"
+      - "scripts/**"
+      - "examples/**"
+      - ".github/workflows/cfo-ci.yml"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-finance-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile CFOAgent
+        run: |
+          set -euo pipefail
+          python -m compileall -q cfo_agent scripts
+
+      - name: Run deterministic tests
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests/cfo_agent -v
+
+      - name: Run CLI smoke tests
+        run: |
+          set -euo pipefail
+          python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" demo \
+            --output "$RUNNER_TEMP/board-pack.md"
+          python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" cash13 \
+            examples/sample_cash_13_week.csv \
+            --output "$RUNNER_TEMP/cash13.md"
+          python -m cfo_agent.cli skills "IFRS 15 revenue recognition" \
+            --json --output "$RUNNER_TEMP/skills.json"
+          test -s "$RUNNER_TEMP/board-pack.md"
+          test -s "$RUNNER_TEMP/cash13.md"
+          test -s "$RUNNER_TEMP/skills.json"
+
+      - name: Verify finance skill inventory
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          cfo = sorted(Path("skills/finance-cfo").glob("*/SKILL.md"))
+          official = sorted(Path("skills/finance-official").glob("*/SKILL.md"))
+          catalog = json.loads(
+              Path("skills/finance-cfo/catalog.json").read_text(encoding="utf-8")
+          )
+          assert len(cfo) == 99, f"expected 99 CFO skills, found {len(cfo)}"
+          assert len(catalog) == 99, f"expected 99 catalog entries, found {len(catalog)}"
+          assert len(official) >= 8, (
+              f"expected at least 8 official Hermes finance skills, found {len(official)}"
+          )
+          print(
+              f"verified CFO skills={len(cfo)}, "
+              f"official finance skills={len(official)}"
+          )
+          PY
