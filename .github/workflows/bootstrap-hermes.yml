@@ -123,7 +123,13 @@ jobs:
                   if member.issym() or member.islnk():
                       raise SystemExit(f"Links are not allowed in CFO payload: {member.name}")
                   normalized = member.name[2:] if member.name.startswith("./") else member.name
-                  if normalized.startswith(".git/") or normalized.startswith(".github/workflows/"):
+                  if normalized.startswith(".git/"):
+                      raise SystemExit(f"Protected path in CFO payload: {member.name}")
+                  allowed_workflows = {".github/workflows/cfo-ci.yml"}
+                  if (
+                      normalized.startswith(".github/workflows/")
+                      and normalized not in allowed_workflows
+                  ):
                       raise SystemExit(f"Protected path in CFO payload: {member.name}")
                   names.add(normalized.rstrip("/"))
 
