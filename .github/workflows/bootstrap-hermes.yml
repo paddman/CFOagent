@@ -5,6 +5,12 @@ on:
     branches: [feat/cfo-hermes-bootstrap]
     paths:
       - ".github/workflows/bootstrap-hermes.yml"
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/bootstrap-hermes.yml"
+      - ".cfo/overlay.tar.gz.b64"
   workflow_dispatch:
 
 permissions:
@@ -12,16 +18,18 @@ permissions:
 
 concurrency:
   group: cfo-hermes-bootstrap
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   import-and-customize:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Checkout CFOAgent seed
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Import Hermes Agent main
@@ -51,6 +59,18 @@ jobs:
           base64 --decode .cfo/overlay.tar.gz.b64 | tar -xzf - -C .
           python scripts/patch_upstream.py --upstream-sha "$UPSTREAM_SHA"
 
+          if ! grep -q '^# CFOAgent tracked examples$' .gitignore; then
+            cat >> .gitignore <<'EOF'
+
+          # CFOAgent tracked examples
+          !examples/
+          !examples/sample_financials.csv
+          !examples/sample_budget.csv
+          !examples/sample_long_thai.csv
+          !examples/sample_cash_13_week.csv
+          EOF
+          fi
+
           python - <<'PY'
           from pathlib import Path
           import subprocess
@@ -79,6 +99,7 @@ jobs:
             examples/sample_cash_13_week.csv --output "$RUNNER_TEMP/cash13.md"
           test -s "$RUNNER_TEMP/board-pack.md"
           test -s "$RUNNER_TEMP/cash13.md"
+          printf 'passed\nupstream=%s\n' "$UPSTREAM_SHA" > .cfo/bootstrap-status
 
       - name: Commit imported runtime and CFO system
         shell: bash
@@ -87,6 +108,11 @@ jobs:
           git config user.name "CFOAgent Bootstrap"
           git config user.email "actions@users.noreply.github.com"
           git add -A
+          git add -f \
+            examples/sample_financials.csv \
+            examples/sample_budget.csv \
+            examples/sample_long_thai.csv \
+            examples/sample_cash_13_week.csv
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
