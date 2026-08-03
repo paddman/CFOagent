@@ -1,26 +1,22 @@
-# Registered on the default branch so feature-branch events can bootstrap safely.
-name: Bootstrap Hermes runtime and CFO overlay
+# Runs from the default branch and checks out the PR head explicitly.
+name: Bootstrap Hermes runtime and CFO source
 
 on:
-  push:
-    branches:
-      - feat/cfo-hermes-bootstrap
-    paths:
-      - ".github/workflows/bootstrap-hermes.yml"
-      - ".cfo/bootstrap_payload.py"
-      - ".cfo/delta-v0.2.0/**"
   pull_request:
-    branches:
-      - main
-    types:
-      - reopened
+    branches: [main]
+    types: [reopened]
   workflow_dispatch:
+    inputs:
+      target_branch:
+        description: Existing branch to update
+        required: false
+        default: feat/cfo-hermes-bootstrap
 
 permissions:
   contents: write
 
 concurrency:
-  group: cfo-hermes-bootstrap-${{ github.ref }}
+  group: cfo-hermes-bootstrap-${{ github.event_name }}-${{ github.head_ref || inputs.target_branch || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -29,13 +25,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - name: Checkout CFOAgent seed
+      - name: Resolve target branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            target="${{ github.head_ref }}"
+          else
+            target="${{ inputs.target_branch }}"
+          fi
+          test -n "$target"
+          echo "TARGET_BRANCH=$target" >> "$GITHUB_ENV"
+
+      - name: Checkout CFOAgent source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || inputs.target_branch }}
           fetch-depth: 0
 
-      - name: Import Hermes Agent main
+      - name: Import current Hermes Agent
         shell: bash
         run: |
           set -euo pipefail
@@ -50,42 +58,34 @@ jobs:
             --exclude='.git/' \
             --exclude='.cfo/' \
             --exclude='.github/workflows/' \
+            --exclude='cfo_agent/' \
+            --exclude='tests/cfo_agent/' \
+            --exclude='skills/finance-cfo/' \
+            --exclude='skills/finance-official/' \
+            --exclude='scripts/patch_upstream.py' \
+            --exclude='scripts/sync_upstream.py' \
+            --exclude='scripts/generate_finance_skills.py' \
+            --exclude='examples/sample_*' \
+            --exclude='README_CFO.md' \
+            --exclude='THIRD_PARTY_NOTICES.md' \
+            --exclude='.hermes.md' \
+            --exclude='docs/FINANCE_SKILLS.md' \
             /tmp/hermes-agent/ ./
 
           cp /tmp/upstream-readme.md UPSTREAM_README.md
 
-      - name: Assemble and validate CFO v0.2 overlay
+      - name: Activate CFOAgent and finance skills
         shell: bash
         run: |
           set -euo pipefail
-          python .cfo/bootstrap_payload.py \
-            --repo-root "$GITHUB_WORKSPACE" \
-            --runner-temp "$RUNNER_TEMP" \
-            --github-env "$GITHUB_ENV"
-
-      - name: Restore CFO base, apply v0.2 delta, and activate finance skills
-        shell: bash
-        run: |
-          set -euo pipefail
-          cp -a "$CFO_RECOVERY_DIR"/. .
-          tar -xzf "$CFO_OVERLAY_ARCHIVE" -C .
+          python scripts/generate_finance_skills.py \
+            --destination skills/finance-cfo
           python scripts/patch_upstream.py --upstream-sha "$UPSTREAM_SHA"
 
           test -d optional-skills/finance
           rm -rf skills/finance-official
           mkdir -p skills/finance-official
           cp -a optional-skills/finance/. skills/finance-official/
-
-          cat > THIRD_PARTY_FINANCE_SKILLS.md <<'EOF'
-          # Third-Party Finance Skills
-
-          CFOAgent activates the official finance skills shipped by NousResearch/hermes-agent.
-          Their original author, license metadata, and source instructions are preserved in each
-          copied `SKILL.md`. At bootstrap time these include stock research, Excel and PowerPoint
-          authoring, DCF, comparable-company analysis, three-statement, LBO, and merger modeling.
-          Those upstream skills are Apache-2.0 licensed; the Hermes runtime is MIT licensed.
-          CFOAgent-specific additions remain governed by this repository's notices.
-          EOF
 
           if ! grep -q '^# CFOAgent tracked examples$' .gitignore; then
             cat >> .gitignore <<'EOF'
@@ -96,6 +96,7 @@ jobs:
           !examples/sample_budget.csv
           !examples/sample_long_thai.csv
           !examples/sample_cash_13_week.csv
+          !examples/sample_scenarios.json
           EOF
           fi
 
@@ -109,49 +110,57 @@ jobs:
           ).decode("utf-8").split("\0")
           imported = sorted(path for path in raw if path and not is_preserved(path))
           Path(".cfo/upstream-files.txt").write_text(
-              "\n".join(imported) + "\n", encoding="utf-8"
+              "\n".join(imported) + "\n",
+              encoding="utf-8",
           )
           PY
 
-      - name: Verify deterministic CFO layer and skill catalog
+      - name: Verify CFOAgent
         shell: bash
         env:
           PYTHONWARNINGS: error::ResourceWarning
         run: |
           set -euo pipefail
-          python -m compileall -q \
-            cfo_agent \
-            scripts/patch_upstream.py \
-            scripts/sync_upstream.py \
-            .cfo/bootstrap_payload.py
+          python -m compileall -q cfo_agent scripts
           python -m unittest discover -s tests/cfo_agent -v
+
           python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" demo \
             --output "$RUNNER_TEMP/board-pack.md"
           python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" cash13 \
-            examples/sample_cash_13_week.csv --output "$RUNNER_TEMP/cash13.md"
+            examples/sample_cash_13_week.csv \
+            --output "$RUNNER_TEMP/cash13.md"
+          python -m cfo_agent.cli skills "IFRS 15 revenue recognition" \
+            --json --output "$RUNNER_TEMP/skills.json"
+
           test -s "$RUNNER_TEMP/board-pack.md"
           test -s "$RUNNER_TEMP/cash13.md"
+          test -s "$RUNNER_TEMP/skills.json"
 
-          counts_env="$RUNNER_TEMP/cfo-skill-counts.env"
-          SKILL_COUNTS_ENV="$counts_env" python - <<'PY'
+          counts_env="$RUNNER_TEMP/cfo-counts.env"
+          COUNTS_ENV="$counts_env" python - <<'PY'
           from pathlib import Path
+          import json
           import os
           import re
 
-          all_skills = sorted(Path("skills").rglob("SKILL.md"))
-          official_finance = sorted(Path("skills/finance-official").glob("*/SKILL.md"))
-          if len(all_skills) < 99:
+          cfo = sorted(Path("skills/finance-cfo").glob("*/SKILL.md"))
+          official = sorted(Path("skills/finance-official").glob("*/SKILL.md"))
+          active = sorted(Path("skills").rglob("SKILL.md"))
+          catalog = json.loads(
+              Path("skills/finance-cfo/catalog.json").read_text(encoding="utf-8")
+          )
+
+          if len(cfo) != 99 or len(catalog) != 99:
               raise SystemExit(
-                  f"Expected at least 99 active skills, found {len(all_skills)}"
+                  f"expected 99 CFO skills, found files={len(cfo)}, catalog={len(catalog)}"
               )
-          if len(official_finance) < 8:
+          if len(official) < 8:
               raise SystemExit(
-                  f"Expected at least 8 official finance skills, "
-                  f"found {len(official_finance)}"
+                  f"expected at least 8 official finance skills, found {len(official)}"
               )
 
           malformed = []
-          for path in official_finance:
+          for path in cfo + official:
               text = path.read_text(encoding="utf-8")
               frontmatter = text.split("---", 2)[1] if text.startswith("---\n") else ""
               if not re.search(r"(?m)^name:\s*\S+", frontmatter):
@@ -159,31 +168,27 @@ jobs:
               if not re.search(r"(?m)^license:\s*\S+", frontmatter):
                   malformed.append(f"{path}: missing license")
           if malformed:
-              raise SystemExit(
-                  "Malformed official finance skills:\n- " + "\n- ".join(malformed)
-              )
+              raise SystemExit("Malformed finance skills:\n- " + "\n- ".join(malformed))
 
-          counts_path = Path(os.environ["SKILL_COUNTS_ENV"])
-          counts_path.write_text(
-              f"ACTIVE_SKILL_COUNT={len(all_skills)}\n"
-              f"OFFICIAL_FINANCE_SKILL_COUNT={len(official_finance)}\n",
+          Path(os.environ["COUNTS_ENV"]).write_text(
+              f"CFO_SKILL_COUNT={len(cfo)}\n"
+              f"OFFICIAL_FINANCE_SKILL_COUNT={len(official)}\n"
+              f"ACTIVE_SKILL_COUNT={len(active)}\n",
               encoding="ascii",
           )
           print(
-              f"Active skills: {len(all_skills)}; "
-              f"official finance skills: {len(official_finance)}"
+              f"verified CFO={len(cfo)}, official={len(official)}, active={len(active)}"
           )
           PY
 
           source "$counts_env"
           cat "$counts_env" >> "$GITHUB_ENV"
-          printf 'passed\nupstream=%s\nlegacy_base=%s\noverlay=%s\nvariant=%s\nskills=%s\nofficial_finance=%s\n' \
-            "$UPSTREAM_SHA" "$CFO_LEGACY_SHA256" "$CFO_OVERLAY_SHA256" \
-            "$CFO_OVERLAY_VARIANT" \
-            "$ACTIVE_SKILL_COUNT" "$OFFICIAL_FINANCE_SKILL_COUNT" \
+          printf 'passed\nupstream=%s\ncfo_skills=%s\nofficial_finance=%s\nactive_skills=%s\n' \
+            "$UPSTREAM_SHA" "$CFO_SKILL_COUNT" \
+            "$OFFICIAL_FINANCE_SKILL_COUNT" "$ACTIVE_SKILL_COUNT" \
             > .cfo/bootstrap-status
 
-      - name: Commit imported runtime and CFO system
+      - name: Commit complete runtime and CFO system
         shell: bash
         run: |
           set -euo pipefail
@@ -191,14 +196,8 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add -A
 
-          for sample in \
-            examples/sample_financials.csv \
-            examples/sample_budget.csv \
-            examples/sample_long_thai.csv \
-            examples/sample_cash_13_week.csv; do
-            if [[ -f "$sample" ]]; then
-              git add -f -- "$sample"
-            fi
+          for sample in examples/sample_*; do
+            [[ -f "$sample" ]] && git add -f -- "$sample"
           done
 
           if git diff --cached --quiet; then
@@ -206,9 +205,8 @@ jobs:
             exit 0
           fi
 
-          git commit -m "feat: import Hermes runtime and activate CFO finance skills"
-          target_branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
-          git push origin "HEAD:${target_branch}"
+          git commit -m "feat: import Hermes runtime and add 99 CFO finance skills"
+          git push origin "HEAD:$TARGET_BRANCH"
 
       - name: Write bootstrap summary
         shell: bash
@@ -217,14 +215,9 @@ jobs:
             echo "## CFOAgent bootstrap"
             echo ""
             echo "- Hermes upstream: \`$UPSTREAM_SHA\`"
-            echo "- Recovered legacy base: \`$CFO_LEGACY_SHA256\`"
-            echo "- Recovered base files: $CFO_RECOVERED_FILE_COUNT from $CFO_RECOVERED_BYTES decompressed bytes"
-            echo "- CFO v0.2 delta: \`$CFO_OVERLAY_SHA256\`"
-            echo "- Payload variant: \`$CFO_OVERLAY_VARIANT\`"
-            echo "- Verified payload parts: $PAYLOAD_PART_COUNT"
-            echo "- CFO skill documents in payload: $PAYLOAD_SKILL_DOC_COUNT"
-            echo "- Active skill catalog: $ACTIVE_SKILL_COUNT skills"
-            echo "- Official finance skills activated: $OFFICIAL_FINANCE_SKILL_COUNT"
-            echo "- Deterministic tests and 13-week cash forecast smoke test: passed"
-            echo "- Runtime copied without upstream workflow files"
+            echo "- CFO-native finance skills: $CFO_SKILL_COUNT"
+            echo "- Official Hermes finance skills: $OFFICIAL_FINANCE_SKILL_COUNT"
+            echo "- Total active skills: $ACTIVE_SKILL_COUNT"
+            echo "- Deterministic unit tests and CLI smoke tests: passed"
+            echo "- Corrupt legacy payload removed from the branch being merged"
           } >> "$GITHUB_STEP_SUMMARY"
