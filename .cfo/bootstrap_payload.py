@@ -237,8 +237,6 @@ def assemble_variant(
         )
 
     skill_docs = tuple(sorted(name for name in members if name.endswith("/SKILL.md")))
-    if not skill_docs:
-        raise ValueError("archive contains no SKILL.md files")
 
     return PayloadCandidate(
         variant=variant,
