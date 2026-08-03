@@ -78,8 +78,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python scripts/generate_finance_skills.py \
-            --destination skills/finance-cfo
+          python scripts/generate_finance_skills.py --destination skills/finance-cfo
           python scripts/patch_upstream.py --upstream-sha "$UPSTREAM_SHA"
 
           test -d optional-skills/finance
@@ -115,15 +114,24 @@ jobs:
           )
           PY
 
-      - name: Verify CFOAgent
+      - name: Compile CFOAgent source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m compileall -q cfo_agent scripts
+
+      - name: Run CFOAgent unit tests
         shell: bash
         env:
           PYTHONWARNINGS: error::ResourceWarning
         run: |
           set -euo pipefail
-          python -m compileall -q cfo_agent scripts
-          python -m unittest discover -s tests/cfo_agent -v
+          python -m unittest discover -s tests/cfo_agent -v 2>&1 | tee "$RUNNER_TEMP/cfo-unit-tests.log"
 
+      - name: Run CFOAgent CLI smoke tests
+        shell: bash
+        run: |
+          set -euo pipefail
           python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" demo \
             --output "$RUNNER_TEMP/board-pack.md"
           python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" cash13 \
@@ -131,11 +139,14 @@ jobs:
             --output "$RUNNER_TEMP/cash13.md"
           python -m cfo_agent.cli skills "IFRS 15 revenue recognition" \
             --json --output "$RUNNER_TEMP/skills.json"
-
           test -s "$RUNNER_TEMP/board-pack.md"
           test -s "$RUNNER_TEMP/cash13.md"
           test -s "$RUNNER_TEMP/skills.json"
 
+      - name: Verify finance skill inventory
+        shell: bash
+        run: |
+          set -euo pipefail
           counts_env="$RUNNER_TEMP/cfo-counts.env"
           COUNTS_ENV="$counts_env" python - <<'PY'
           from pathlib import Path
@@ -183,6 +194,11 @@ jobs:
 
           source "$counts_env"
           cat "$counts_env" >> "$GITHUB_ENV"
+
+      - name: Record bootstrap status
+        shell: bash
+        run: |
+          set -euo pipefail
           printf 'passed\nupstream=%s\ncfo_skills=%s\nofficial_finance=%s\nactive_skills=%s\n' \
             "$UPSTREAM_SHA" "$CFO_SKILL_COUNT" \
             "$OFFICIAL_FINANCE_SKILL_COUNT" "$ACTIVE_SKILL_COUNT" \
