@@ -1,0 +1,107 @@
+name: Bootstrap Hermes runtime and CFO overlay
+
+on:
+  push:
+    branches: [feat/cfo-hermes-bootstrap]
+    paths:
+      - ".github/workflows/bootstrap-hermes.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cfo-hermes-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  import-and-customize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout CFOAgent seed
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Import Hermes Agent main
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/hermes-agent /tmp/upstream-readme.md
+          git clone --depth=1 --single-branch --branch main \
+            https://github.com/NousResearch/hermes-agent.git /tmp/hermes-agent
+          cp /tmp/hermes-agent/README.md /tmp/upstream-readme.md
+          UPSTREAM_SHA="$(git -C /tmp/hermes-agent rev-parse HEAD)"
+          echo "UPSTREAM_SHA=$UPSTREAM_SHA" >> "$GITHUB_ENV"
+
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.cfo/' \
+            --exclude='.github/workflows/' \
+            /tmp/hermes-agent/ ./
+
+          cp /tmp/upstream-readme.md UPSTREAM_README.md
+
+      - name: Apply CFO overlay
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s .cfo/overlay.tar.gz.b64
+          base64 --decode .cfo/overlay.tar.gz.b64 | tar -xzf - -C .
+          python scripts/patch_upstream.py --upstream-sha "$UPSTREAM_SHA"
+
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          from scripts.sync_upstream import is_preserved
+
+          raw = subprocess.check_output(
+              ["git", "-C", "/tmp/hermes-agent", "ls-files", "-z"]
+          ).decode("utf-8").split("\0")
+          imported = sorted(path for path in raw if path and not is_preserved(path))
+          Path(".cfo/upstream-files.txt").write_text(
+              "\n".join(imported) + "\n", encoding="utf-8"
+          )
+          PY
+
+      - name: Verify deterministic CFO layer
+        shell: bash
+        env:
+          PYTHONWARNINGS: error::ResourceWarning
+        run: |
+          set -euo pipefail
+          python -m compileall -q cfo_agent scripts/patch_upstream.py scripts/sync_upstream.py
+          python -m unittest discover -s tests/cfo_agent -v
+          python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" demo \
+            --output "$RUNNER_TEMP/board-pack.md"
+          python -m cfo_agent.cli --home "$RUNNER_TEMP/cfohome" cash13 \
+            examples/sample_cash_13_week.csv --output "$RUNNER_TEMP/cash13.md"
+          test -s "$RUNNER_TEMP/board-pack.md"
+          test -s "$RUNNER_TEMP/cash13.md"
+
+      - name: Commit imported runtime and CFO system
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "CFOAgent Bootstrap"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "feat: import Hermes runtime and add CFO operating system"
+          git push origin HEAD:feat/cfo-hermes-bootstrap
+
+      - name: Write bootstrap summary
+        shell: bash
+        run: |
+          {
+            echo "## CFOAgent bootstrap"
+            echo ""
+            echo "- Hermes upstream: \`$UPSTREAM_SHA\`"
+            echo "- CFO deterministic tests: passed"
+            echo "- 13-week cash forecast smoke test: passed"
+            echo "- Runtime copied without upstream workflow files"
+          } >> "$GITHUB_STEP_SUMMARY"
