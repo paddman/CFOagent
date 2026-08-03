@@ -38,7 +38,7 @@ jobs:
           echo "TARGET_BRANCH=$target" >> "$GITHUB_ENV"
 
       - name: Checkout CFOAgent source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'pull_request' && github.head_ref || inputs.target_branch }}
           fetch-depth: 0
