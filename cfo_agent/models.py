@@ -1,38 +1,24 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-from typing import Any, Mapping
+from dataclasses import asdict, dataclass
+from decimal import Decimal, InvalidOperation
+from typing import Any
 
 
-MONEY = Decimal("0.01")
 ZERO = Decimal("0")
+HUNDRED = Decimal("100")
 
 
-def money(value: Any, *, allow_none: bool = False) -> Decimal | None:
+def money(value: Any, *, field: str = "value") -> Decimal:
+    """Convert a CSV/API value to Decimal without binary floating-point drift."""
     if value is None or value == "":
-        if allow_none:
-            return None
         return ZERO
     if isinstance(value, Decimal):
-        result = value
-    else:
-        text = str(value).strip().replace(",", "")
-        if text.startswith("(") and text.endswith(")"):
-            text = "-" + text[1:-1]
-        try:
-            result = Decimal(text)
-        except (InvalidOperation, ValueError) as exc:
-            raise ValueError(f"invalid monetary value: {value!r}") from exc
-    return result.quantize(MONEY, rounding=ROUND_HALF_UP)
-
-
-def percent(numerator: Decimal, denominator: Decimal) -> Decimal | None:
-    if denominator == ZERO:
-        return None
-    return (numerator / denominator * Decimal("100")).quantize(
-        MONEY, rounding=ROUND_HALF_UP
-    )
+        return value
+    try:
+        return Decimal(str(value).replace(",", "").strip())
+    except (InvalidOperation, ValueError) as exc:
+        raise ValueError(f"{field} must be numeric, got {value!r}") from exc
 
 
 def decimal_json(value: Any) -> Any:
@@ -44,6 +30,8 @@ def decimal_json(value: Any) -> Any:
         return [decimal_json(item) for item in value]
     if isinstance(value, dict):
         return {key: decimal_json(item) for key, item in value.items()}
+    if hasattr(value, "__dataclass_fields__"):
+        return decimal_json(asdict(value))
     return value
 
 
@@ -60,20 +48,20 @@ class FinancialPeriod:
     debt: Decimal = ZERO
 
     @classmethod
-    def from_mapping(cls, row: Mapping[str, Any]) -> "FinancialPeriod":
-        period = str(row.get("period", "")).strip()
+    def from_mapping(cls, row: dict[str, Any]) -> "FinancialPeriod":
+        period = str(row.get("period") or row.get("date") or "").strip()
         if not period:
             raise ValueError("period is required")
         return cls(
             period=period,
-            revenue=money(row.get("revenue")),
-            cogs=money(row.get("cogs")),
-            opex=money(row.get("opex")),
-            cash=money(row.get("cash")),
-            receivables=money(row.get("receivables")),
-            payables=money(row.get("payables")),
-            inventory=money(row.get("inventory")),
-            debt=money(row.get("debt")),
+            revenue=money(row.get("revenue"), field="revenue"),
+            cogs=money(row.get("cogs"), field="cogs"),
+            opex=money(row.get("opex"), field="opex"),
+            cash=money(row.get("cash"), field="cash"),
+            receivables=money(row.get("receivables"), field="receivables"),
+            payables=money(row.get("payables"), field="payables"),
+            inventory=money(row.get("inventory"), field="inventory"),
+            debt=money(row.get("debt"), field="debt"),
         )
 
 
@@ -85,38 +73,40 @@ class BudgetLine:
     budget: Decimal
 
     @classmethod
-    def from_mapping(cls, row: Mapping[str, Any]) -> "BudgetLine":
-        period = str(row.get("period", "")).strip()
-        account = str(row.get("account", "")).strip()
+    def from_mapping(cls, row: dict[str, Any]) -> "BudgetLine":
+        period = str(row.get("period") or "").strip()
+        account = str(row.get("account") or "").strip()
         if not period or not account:
             raise ValueError("period and account are required")
         return cls(
             period=period,
             account=account,
-            actual=money(row.get("actual")),
-            budget=money(row.get("budget")),
+            actual=money(row.get("actual"), field="actual"),
+            budget=money(row.get("budget"), field="budget"),
         )
 
 
 @dataclass(frozen=True)
 class CashWeek:
     week: str
-    opening_cash: Decimal | None
     inflows: Decimal
     outflows: Decimal
+    opening_cash: Decimal | None = None
     minimum_cash: Decimal = ZERO
 
     @classmethod
-    def from_mapping(cls, row: Mapping[str, Any]) -> "CashWeek":
-        week = str(row.get("week", "")).strip()
+    def from_mapping(cls, row: dict[str, Any]) -> "CashWeek":
+        week = str(row.get("week") or row.get("period") or "").strip()
         if not week:
             raise ValueError("week is required")
+        opening_raw = row.get("opening_cash")
+        opening = None if opening_raw in (None, "") else money(opening_raw, field="opening_cash")
         return cls(
             week=week,
-            opening_cash=money(row.get("opening_cash"), allow_none=True),
-            inflows=money(row.get("inflows")),
-            outflows=money(row.get("outflows")),
-            minimum_cash=money(row.get("minimum_cash")),
+            inflows=money(row.get("inflows"), field="inflows"),
+            outflows=money(row.get("outflows"), field="outflows"),
+            opening_cash=opening,
+            minimum_cash=money(row.get("minimum_cash"), field="minimum_cash"),
         )
 
 
@@ -125,22 +115,18 @@ class JournalLine:
     account: str
     debit: Decimal = ZERO
     credit: Decimal = ZERO
-    entity: str = ""
-    cost_center: str = ""
-    description: str = ""
+    memo: str = ""
 
     @classmethod
-    def from_mapping(cls, row: Mapping[str, Any]) -> "JournalLine":
-        account = str(row.get("account", "")).strip()
+    def from_mapping(cls, row: dict[str, Any]) -> "JournalLine":
+        account = str(row.get("account") or "").strip()
         if not account:
-            raise ValueError("journal line account is required")
+            raise ValueError("account is required")
         return cls(
             account=account,
-            debit=money(row.get("debit")),
-            credit=money(row.get("credit")),
-            entity=str(row.get("entity", "")).strip(),
-            cost_center=str(row.get("cost_center", "")).strip(),
-            description=str(row.get("description", "")).strip(),
+            debit=money(row.get("debit"), field="debit"),
+            credit=money(row.get("credit"), field="credit"),
+            memo=str(row.get("memo") or ""),
         )
 
 
