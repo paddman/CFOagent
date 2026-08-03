@@ -93,6 +93,13 @@ jobs:
 
           payload_path = Path(".cfo/overlay.tar.gz.b64")
           encoded = payload_path.read_text(encoding="ascii").strip()
+          if "=" in encoded.rstrip("="):
+              raise SystemExit("CFO payload contains embedded base64 padding")
+          padding = (-len(encoded)) % 4
+          if padding:
+              encoded += "=" * padding
+              payload_path.write_text(encoded + "\n", encoding="ascii")
+
           try:
               raw = base64.b64decode(encoded, validate=True)
           except Exception as exc:
@@ -130,7 +137,11 @@ jobs:
           )
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
               env_file.write(f"CFO_PAYLOAD_SHA256={digest}\n")
-          print(f"Validated CFO payload: {len(raw):,} bytes, sha256={digest}")
+              env_file.write(f"CFO_PAYLOAD_PADDING={padding}\n")
+          print(
+              f"Validated CFO payload: {len(raw):,} bytes, "
+              f"padding_added={padding}, sha256={digest}"
+          )
           PY
 
       - name: Apply CFO overlay and activate finance skills
