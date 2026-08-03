@@ -1,0 +1,7 @@
+{
+  "cfoagent_version": "0.3.0",
+  "official_finance_skills_license": "Apache-2.0",
+  "runtime_license": "MIT",
+  "upstream_commit": "d1afa16053a3777849c2b5465d59a0147b2172f9",
+  "upstream_repository": "https://github.com/NousResearch/hermes-agent"
+}

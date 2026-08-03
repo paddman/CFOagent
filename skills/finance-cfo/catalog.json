@@ -1,0 +1,1652 @@
+[
+  {
+    "slug": "annual-operating-plan",
+    "title": "Annual Operating Plan",
+    "category": "fpna",
+    "description": "Build an integrated annual operating plan with drivers, owners, scenarios, and approval gates.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "annual",
+      "operating",
+      "plan"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "rolling-forecast",
+    "title": "Rolling Forecast",
+    "category": "fpna",
+    "description": "Maintain a driver-based rolling forecast with monthly actuals, reforecast logic, and decision triggers.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "rolling",
+      "forecast"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "budget-variance-analysis",
+    "title": "Budget Variance Analysis",
+    "category": "fpna",
+    "description": "Analyze actual versus budget, isolate rate-volume-mix drivers, and produce accountable actions.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "budget",
+      "variance",
+      "analysis"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "management-reporting-pack",
+    "title": "Management Reporting Pack",
+    "category": "fpna",
+    "description": "Produce a concise monthly management pack with KPI trends, material variances, risks, and actions.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "management",
+      "reporting",
+      "pack"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "board-pack",
+    "title": "Board Finance Pack",
+    "category": "fpna",
+    "description": "Create decision-ready board finance materials with performance, liquidity, outlook, risks, and asks.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "board",
+      "pack"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "driver-based-planning",
+    "title": "Driver-Based Planning",
+    "category": "fpna",
+    "description": "Translate operational drivers into revenue, cost, headcount, cash, and capacity forecasts.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "driver",
+      "based"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "scenario-stress-testing",
+    "title": "Scenario and Stress Testing",
+    "category": "fpna",
+    "description": "Build bear, base, and bull scenarios and quantify financial resilience under explicit shocks.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "scenario",
+      "stress",
+      "testing",
+      "and"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "headcount-workforce-planning",
+    "title": "Headcount and Workforce Planning",
+    "category": "fpna",
+    "description": "Model workforce demand, hiring timing, compensation, productivity, and vacancy impacts.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "headcount",
+      "workforce",
+      "and"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "unit-economics",
+    "title": "Unit Economics",
+    "category": "fpna",
+    "description": "Measure contribution margin, CAC, LTV, payback, retention, and scalable growth economics.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "unit",
+      "economics"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "pricing-profitability",
+    "title": "Pricing and Profitability",
+    "category": "fpna",
+    "description": "Evaluate pricing, discounting, mix, customer profitability, and margin leakage.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "pricing",
+      "profitability",
+      "and"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "cost-optimization",
+    "title": "Cost Optimization",
+    "category": "fpna",
+    "description": "Identify sustainable cost actions using spend, activity, service level, and risk trade-offs.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "cost",
+      "optimization"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "kpi-tree-design",
+    "title": "KPI Tree Design",
+    "category": "fpna",
+    "description": "Design a traceable KPI tree linking operational drivers to P&L, cash flow, and enterprise value.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "kpi",
+      "tree",
+      "design"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "break-even-analysis",
+    "title": "Break-Even Analysis",
+    "category": "fpna",
+    "description": "Calculate contribution margin, break-even volume, margin of safety, and sensitivity.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "break",
+      "even",
+      "analysis"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "forecast-accuracy",
+    "title": "Forecast Accuracy",
+    "category": "fpna",
+    "description": "Measure forecast bias, error, volatility, and corrective actions by horizon and owner.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "forecast",
+      "accuracy"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "profitability-by-customer-product",
+    "title": "Customer and Product Profitability",
+    "category": "fpna",
+    "description": "Allocate direct and support costs to reveal profitability by customer, product, channel, or contract.",
+    "tags": [
+      "finance",
+      "fpna",
+      "planning",
+      "forecasting",
+      "performance",
+      "profitability",
+      "by",
+      "customer",
+      "product",
+      "and"
+    ],
+    "domain": "FP&A"
+  },
+  {
+    "slug": "month-end-close",
+    "title": "Month-End Close",
+    "category": "accounting",
+    "description": "Run a controlled period-end close with dependencies, evidence, reviews, and final lock.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "month",
+      "end"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "account-reconciliation",
+    "title": "Account Reconciliation",
+    "category": "accounting",
+    "description": "Reconcile general ledger balances to independent evidence and resolve aged differences.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "account",
+      "reconciliation"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "journal-entry-review",
+    "title": "Journal Entry Review",
+    "category": "accounting",
+    "description": "Validate journal support, accounting logic, balance, period, entity, and approval.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "journal",
+      "entry",
+      "review"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "trial-balance-review",
+    "title": "Trial Balance Review",
+    "category": "accounting",
+    "description": "Perform analytical and structural review of a trial balance before reporting.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "trial",
+      "balance",
+      "review"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "financial-statement-preparation",
+    "title": "Financial Statement Preparation",
+    "category": "accounting",
+    "description": "Prepare internally consistent primary statements with tie-outs, classifications, and disclosures.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "financial",
+      "statement",
+      "preparation"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "consolidation",
+    "title": "Group Consolidation",
+    "category": "accounting",
+    "description": "Consolidate entities with mapping, ownership, foreign currency, eliminations, and control checks.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "consolidation",
+      "group"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "intercompany-reconciliation",
+    "title": "Intercompany Reconciliation",
+    "category": "accounting",
+    "description": "Match intercompany balances and transactions and resolve timing, FX, and coding differences.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "intercompany",
+      "reconciliation"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "revenue-recognition-ifrs15",
+    "title": "IFRS 15 Revenue Recognition",
+    "category": "accounting",
+    "description": "Apply the five-step revenue model and document performance obligations, timing, and judgments.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "revenue",
+      "recognition",
+      "ifrs15",
+      "15"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "lease-accounting-ifrs16",
+    "title": "IFRS 16 Lease Accounting",
+    "category": "accounting",
+    "description": "Build lease schedules and account for right-of-use assets, liabilities, modifications, and disclosures.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "lease",
+      "ifrs16",
+      "16"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "financial-instruments-ifrs9",
+    "title": "IFRS 9 Financial Instruments",
+    "category": "accounting",
+    "description": "Classify and measure financial instruments and support impairment and hedge-accounting analysis.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "financial",
+      "instruments",
+      "ifrs9",
+      "9"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "expected-credit-loss",
+    "title": "Expected Credit Loss",
+    "category": "accounting",
+    "description": "Develop governed ECL staging, PD, LGD, EAD, forward-looking overlays, and disclosures.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "expected",
+      "credit",
+      "loss"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "impairment-ias36",
+    "title": "IAS 36 Impairment Testing",
+    "category": "accounting",
+    "description": "Test assets and cash-generating units for impairment using supportable cash flows and discount rates.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "impairment",
+      "ias36",
+      "ias",
+      "36",
+      "testing"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "provisions-ias37",
+    "title": "IAS 37 Provisions and Contingencies",
+    "category": "accounting",
+    "description": "Assess present obligations, probability, measurement, uncertainty, and disclosure.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "provisions",
+      "ias37",
+      "ias",
+      "37",
+      "and",
+      "contingencies"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "income-taxes-ias12",
+    "title": "IAS 12 Income Taxes",
+    "category": "accounting",
+    "description": "Prepare current and deferred tax accounting with temporary differences and recoverability evidence.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "income",
+      "taxes",
+      "ias12",
+      "ias",
+      "12"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "foreign-currency-ias21",
+    "title": "IAS 21 Foreign Currency",
+    "category": "accounting",
+    "description": "Determine functional currency and account for transactions, translation, and exchange differences.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "foreign",
+      "currency",
+      "ias21",
+      "ias",
+      "21"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "business-combinations-ifrs3",
+    "title": "IFRS 3 Business Combinations",
+    "category": "accounting",
+    "description": "Apply acquisition accounting, purchase price allocation, goodwill, and measurement-period controls.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "business",
+      "combinations",
+      "ifrs3",
+      "3"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "segment-reporting-ifrs8",
+    "title": "IFRS 8 Segment Reporting",
+    "category": "accounting",
+    "description": "Identify operating segments from management reporting and prepare consistent disclosures.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "segment",
+      "reporting",
+      "ifrs8",
+      "8"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "cash-flow-statement",
+    "title": "Cash Flow Statement",
+    "category": "accounting",
+    "description": "Build and reconcile operating, investing, and financing cash flows with non-cash disclosures.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "cash",
+      "flow",
+      "statement"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "accounting-policy-memo",
+    "title": "Accounting Policy Memo",
+    "category": "accounting",
+    "description": "Write evidence-based accounting memos separating facts, guidance, analysis, judgment, and conclusion.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "policy",
+      "memo"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "disclosure-checklist",
+    "title": "Financial Statement Disclosure Checklist",
+    "category": "accounting",
+    "description": "Run a governed disclosure checklist with applicability, evidence, preparer, and reviewer sign-off.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "disclosure",
+      "checklist",
+      "financial",
+      "statement"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "chart-of-accounts-governance",
+    "title": "Chart of Accounts Governance",
+    "category": "accounting",
+    "description": "Govern account creation, hierarchy, mappings, ownership, usage rules, and change control.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "chart",
+      "of",
+      "accounts",
+      "governance"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "fixed-assets-accounting",
+    "title": "Fixed Assets Accounting",
+    "category": "accounting",
+    "description": "Control capitalization, useful lives, depreciation, transfers, disposals, and physical verification.",
+    "tags": [
+      "finance",
+      "accounting",
+      "close",
+      "ifrs",
+      "fixed",
+      "assets"
+    ],
+    "domain": "Accounting and Reporting"
+  },
+  {
+    "slug": "cash-position",
+    "title": "Daily Cash Position",
+    "category": "treasury",
+    "description": "Produce an entity and bank-level cash position with availability, restrictions, and concentration.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "position",
+      "daily"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "thirteen-week-cash-flow",
+    "title": "13-Week Cash Flow Forecast",
+    "category": "treasury",
+    "description": "Build a rolling direct-method cash forecast with weekly liquidity and breach alerts.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "thirteen",
+      "week",
+      "flow",
+      "13",
+      "forecast"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "liquidity-risk",
+    "title": "Liquidity Risk Management",
+    "category": "treasury",
+    "description": "Set liquidity buffers, stress scenarios, contingency actions, and escalation thresholds.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "risk",
+      "management"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "working-capital",
+    "title": "Working Capital Management",
+    "category": "treasury",
+    "description": "Improve DSO, DIO, DPO, cash conversion cycle, and cross-functional cash accountability.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "working",
+      "capital",
+      "management"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "bank-reconciliation",
+    "title": "Bank Reconciliation",
+    "category": "treasury",
+    "description": "Reconcile bank statements to the ledger and investigate timing, fees, errors, and fraud indicators.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "bank",
+      "reconciliation"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "bank-account-governance",
+    "title": "Bank Account Governance",
+    "category": "treasury",
+    "description": "Govern bank accounts, signatories, access, mandates, confirmations, and dormant-account closure.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "bank",
+      "account",
+      "governance"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "payment-controls",
+    "title": "Payment Controls",
+    "category": "treasury",
+    "description": "Design maker-checker payment controls, validation, duplicate detection, and release evidence.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "payment",
+      "controls"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "debt-covenant-monitoring",
+    "title": "Debt and Covenant Monitoring",
+    "category": "treasury",
+    "description": "Maintain debt schedules, covenant calculations, headroom forecasts, and early-warning escalation.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "debt",
+      "covenant",
+      "monitoring",
+      "and"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "debt-capacity",
+    "title": "Debt Capacity",
+    "category": "treasury",
+    "description": "Assess sustainable leverage, debt service, downside headroom, and refinancing risk.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "debt",
+      "capacity"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "fx-exposure",
+    "title": "Foreign Exchange Exposure",
+    "category": "treasury",
+    "description": "Identify transaction, translation, and economic FX exposures with natural offsets.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "fx",
+      "exposure",
+      "foreign",
+      "exchange"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "fx-hedging",
+    "title": "FX Hedging",
+    "category": "treasury",
+    "description": "Design governed FX hedge strategies, instruments, effectiveness measures, and controls.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "fx",
+      "hedging"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "interest-rate-risk",
+    "title": "Interest Rate Risk",
+    "category": "treasury",
+    "description": "Measure fixed-floating exposure, duration, repricing gaps, and rate-shock sensitivity.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "interest",
+      "rate",
+      "risk"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "cash-pooling",
+    "title": "Cash Pooling and Intercompany Funding",
+    "category": "treasury",
+    "description": "Design cash concentration and intercompany funding with legal, tax, liquidity, and accounting controls.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "pooling",
+      "and",
+      "intercompany",
+      "funding"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "treasury-policy",
+    "title": "Treasury Policy",
+    "category": "treasury",
+    "description": "Create a treasury policy covering liquidity, investments, funding, FX, counterparties, and approvals.",
+    "tags": [
+      "finance",
+      "treasury",
+      "cash",
+      "liquidity",
+      "policy"
+    ],
+    "domain": "Treasury"
+  },
+  {
+    "slug": "capital-allocation",
+    "title": "Capital Allocation",
+    "category": "corporate-finance",
+    "description": "Prioritize investment, debt reduction, dividends, repurchases, and liquidity using explicit hurdle rates.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "capital",
+      "allocation"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "business-case",
+    "title": "Investment Business Case",
+    "category": "corporate-finance",
+    "description": "Build an auditable business case with cash flows, NPV, IRR, payback, scenarios, and benefits ownership.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "business",
+      "case"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "wacc-cost-of-capital",
+    "title": "WACC and Cost of Capital",
+    "category": "corporate-finance",
+    "description": "Estimate cost of equity, debt, capital structure, and sensitivity with sourced market inputs.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "wacc",
+      "cost",
+      "of",
+      "capital",
+      "and"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "dcf-review",
+    "title": "DCF Model Review",
+    "category": "corporate-finance",
+    "description": "Review DCF architecture, forecast logic, terminal value, discounting, bridge, and sensitivities.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "dcf",
+      "review",
+      "model"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "comparable-companies",
+    "title": "Comparable Company Analysis",
+    "category": "corporate-finance",
+    "description": "Select peers, normalize metrics, calculate trading multiples, and interpret valuation ranges.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "comparable",
+      "companies",
+      "company",
+      "analysis"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "precedent-transactions",
+    "title": "Precedent Transaction Analysis",
+    "category": "corporate-finance",
+    "description": "Analyze comparable deals, premiums, synergies, cycle effects, and valuation ranges.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "precedent",
+      "transactions",
+      "transaction",
+      "analysis"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "lbo-review",
+    "title": "LBO Model Review",
+    "category": "corporate-finance",
+    "description": "Review sources and uses, debt paydown, cash sweeps, covenants, returns, and downside cases.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "lbo",
+      "review",
+      "model"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "ma-screening",
+    "title": "M&A Target Screening",
+    "category": "corporate-finance",
+    "description": "Score acquisition targets against strategy, economics, capabilities, risk, and integration feasibility.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "ma",
+      "screening",
+      "m",
+      "a",
+      "target"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "ma-due-diligence",
+    "title": "M&A Financial Due Diligence",
+    "category": "corporate-finance",
+    "description": "Assess quality of earnings, working capital, debt-like items, tax, controls, and forecast credibility.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "ma",
+      "due",
+      "diligence",
+      "m",
+      "a",
+      "financial"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "quality-of-earnings",
+    "title": "Quality of Earnings",
+    "category": "corporate-finance",
+    "description": "Normalize EBITDA and cash conversion by separating recurring performance from one-offs and policy effects.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "quality",
+      "of",
+      "earnings"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "purchase-price-allocation",
+    "title": "Purchase Price Allocation",
+    "category": "corporate-finance",
+    "description": "Support fair-value allocation to identifiable assets and liabilities and derive goodwill.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "purchase",
+      "price",
+      "allocation"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "merger-model-review",
+    "title": "Merger Model Review",
+    "category": "corporate-finance",
+    "description": "Review transaction mechanics, financing, synergies, purchase accounting, and accretion or dilution.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "merger",
+      "model",
+      "review"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "post-merger-integration-finance",
+    "title": "Post-Merger Finance Integration",
+    "category": "corporate-finance",
+    "description": "Plan Day 1 controls, close, treasury, reporting, systems, synergy tracking, and governance.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "post",
+      "merger",
+      "integration"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "ipo-readiness",
+    "title": "IPO Readiness",
+    "category": "corporate-finance",
+    "description": "Assess reporting, controls, governance, forecast, data, audit, and public-company readiness.",
+    "tags": [
+      "finance",
+      "corporate-finance",
+      "valuation",
+      "investment",
+      "m&a",
+      "ipo",
+      "readiness"
+    ],
+    "domain": "Corporate Finance and M&A"
+  },
+  {
+    "slug": "internal-control-framework",
+    "title": "Internal Control Framework",
+    "category": "risk-controls",
+    "description": "Design entity, process, and technology controls using objectives, risks, ownership, and evidence.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "internal",
+      "control",
+      "framework"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "risk-control-matrix",
+    "title": "Risk and Control Matrix",
+    "category": "risk-controls",
+    "description": "Map process risks to control objectives, activities, owners, frequency, evidence, and testing.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "control",
+      "matrix",
+      "and"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "segregation-of-duties",
+    "title": "Segregation of Duties",
+    "category": "risk-controls",
+    "description": "Identify incompatible finance access and design preventive or compensating controls.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "segregation",
+      "of",
+      "duties"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "access-review-finance",
+    "title": "Finance Access Review",
+    "category": "risk-controls",
+    "description": "Perform periodic access certification for ERP, banking, payroll, tax, and reporting systems.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "access",
+      "review"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "fraud-risk-assessment",
+    "title": "Fraud Risk Assessment",
+    "category": "risk-controls",
+    "description": "Assess fraud schemes, incentives, opportunities, controls, indicators, and response plans.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "fraud",
+      "assessment"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "journal-entry-testing",
+    "title": "Journal Entry Testing",
+    "category": "risk-controls",
+    "description": "Risk-rank journals and test unusual users, times, accounts, amounts, and descriptions.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "journal",
+      "entry",
+      "testing"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "duplicate-payment-detection",
+    "title": "Duplicate Payment Detection",
+    "category": "risk-controls",
+    "description": "Detect likely duplicate invoices and payments with explainable matching rules.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "duplicate",
+      "payment",
+      "detection"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "vendor-master-controls",
+    "title": "Vendor Master Controls",
+    "category": "risk-controls",
+    "description": "Control vendor onboarding, changes, bank validation, duplicates, conflicts, and periodic review.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "vendor",
+      "master"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "expense-analytics",
+    "title": "Expense and T&E Analytics",
+    "category": "risk-controls",
+    "description": "Detect policy exceptions, duplicate claims, split transactions, outliers, and suspicious patterns.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "expense",
+      "analytics",
+      "and",
+      "t",
+      "e"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "continuous-controls-monitoring",
+    "title": "Continuous Controls Monitoring",
+    "category": "risk-controls",
+    "description": "Run scheduled control analytics with evidence, case management, aging, and remediation.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "continuous",
+      "monitoring"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "audit-planning",
+    "title": "Risk-Based Audit Planning",
+    "category": "risk-controls",
+    "description": "Prioritize audit coverage using impact, likelihood, change, control maturity, and prior findings.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "planning",
+      "based"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "audit-pbc-management",
+    "title": "Audit PBC Management",
+    "category": "risk-controls",
+    "description": "Manage audit requests, owners, evidence quality, due dates, and secure delivery.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "pbc",
+      "management"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "control-testing",
+    "title": "Control Design and Operating Effectiveness Testing",
+    "category": "risk-controls",
+    "description": "Test control design, population completeness, sample execution, evidence, and exceptions.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "control",
+      "testing",
+      "design",
+      "and",
+      "operating",
+      "effectiveness"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "financial-close-controls",
+    "title": "Financial Close Controls",
+    "category": "risk-controls",
+    "description": "Design and monitor controls over close, consolidation, review, disclosures, and period lock.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "financial",
+      "close"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "going-concern",
+    "title": "Going Concern Assessment",
+    "category": "risk-controls",
+    "description": "Assess liquidity, forecasts, covenants, mitigating actions, uncertainty, and disclosure needs.",
+    "tags": [
+      "finance",
+      "risk-controls",
+      "controls",
+      "audit",
+      "risk",
+      "going",
+      "concern",
+      "assessment"
+    ],
+    "domain": "Risk, Audit, and Controls"
+  },
+  {
+    "slug": "thai-corporate-income-tax",
+    "title": "Thailand Corporate Income Tax",
+    "category": "tax-thailand",
+    "description": "Prepare a governed Thai corporate income tax bridge, adjustments, evidence, and filing review.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "corporate",
+      "income"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "thai-vat",
+    "title": "Thailand VAT",
+    "category": "tax-thailand",
+    "description": "Reconcile output and input VAT, assess documentation, exceptions, and filing readiness.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "vat"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "thai-withholding-tax",
+    "title": "Thailand Withholding Tax",
+    "category": "tax-thailand",
+    "description": "Determine withholding categories, rates, certificates, remittance, and reconciliation.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "withholding"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "thai-transfer-pricing",
+    "title": "Thailand Transfer Pricing",
+    "category": "tax-thailand",
+    "description": "Support related-party pricing, documentation, benchmarking, disclosure, and adjustment review.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "transfer",
+      "pricing"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "thai-tax-provision",
+    "title": "Thailand Tax Provision",
+    "category": "tax-thailand",
+    "description": "Prepare current and deferred Thai tax provision with uncertain positions and effective-tax-rate analysis.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "provision"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "thai-e-tax-invoice",
+    "title": "Thailand e-Tax Invoice and e-Receipt",
+    "category": "tax-thailand",
+    "description": "Assess e-tax document process, master data, signatures, transmission, archive, and reconciliation.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "e",
+      "invoice",
+      "and",
+      "receipt"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "thai-e-withholding-tax",
+    "title": "Thailand e-Withholding Tax",
+    "category": "tax-thailand",
+    "description": "Reconcile e-withholding records to payments, certificates, ledger, and tax submissions.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "e",
+      "withholding"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "thai-customs-duty",
+    "title": "Thailand Customs and Import Duty",
+    "category": "tax-thailand",
+    "description": "Review tariff classification, customs value, origin, exemptions, brokers, and reconciliations.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "customs",
+      "duty",
+      "and",
+      "import"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "thai-boi-incentives",
+    "title": "Thailand BOI Incentives",
+    "category": "tax-thailand",
+    "description": "Track promoted activities, conditions, privileges, segregated results, and compliance evidence.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "boi",
+      "incentives"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "thai-tax-calendar",
+    "title": "Thailand Tax Compliance Calendar",
+    "category": "tax-thailand",
+    "description": "Maintain tax obligations, data cutoffs, owners, reviews, submissions, payments, and evidence.",
+    "tags": [
+      "finance",
+      "tax-thailand",
+      "thailand",
+      "tax",
+      "compliance",
+      "thai",
+      "calendar"
+    ],
+    "domain": "Thailand Tax and Regulation"
+  },
+  {
+    "slug": "saas-metrics",
+    "title": "SaaS Metrics",
+    "category": "industry-data",
+    "description": "Calculate ARR, MRR, churn, retention, expansion, CAC, LTV, payback, and Rule of 40.",
+    "tags": [
+      "finance",
+      "industry-data",
+      "data",
+      "analytics",
+      "metrics",
+      "saas"
+    ],
+    "domain": "Industry and Finance Data"
+  },
+  {
+    "slug": "telecom-metrics",
+    "title": "Telecom Metrics",
+    "category": "industry-data",
+    "description": "Analyze subscribers, ARPU, churn, traffic, network costs, capex intensity, and service margin.",
+    "tags": [
+      "finance",
+      "industry-data",
+      "data",
+      "analytics",
+      "metrics",
+      "telecom"
+    ],
+    "domain": "Industry and Finance Data"
+  },
+  {
+    "slug": "idc-cloud-unit-economics",
+    "title": "IDC and Cloud Unit Economics",
+    "category": "industry-data",
+    "description": "Measure rack, power, bandwidth, VM, storage, occupancy, utilization, and contribution margin economics.",
+    "tags": [
+      "finance",
+      "industry-data",
+      "data",
+      "analytics",
+      "metrics",
+      "idc",
+      "cloud",
+      "unit",
+      "economics",
+      "and"
+    ],
+    "domain": "Industry and Finance Data"
+  },
+  {
+    "slug": "project-profitability",
+    "title": "Project and Contract Profitability",
+    "category": "industry-data",
+    "description": "Track contract revenue, cost-to-complete, margin, change orders, billing, and cash exposure.",
+    "tags": [
+      "finance",
+      "industry-data",
+      "data",
+      "analytics",
+      "metrics",
+      "project",
+      "profitability",
+      "and",
+      "contract"
+    ],
+    "domain": "Industry and Finance Data"
+  },
+  {
+    "slug": "data-quality-finance",
+    "title": "Finance Data Quality",
+    "category": "industry-data",
+    "description": "Profile completeness, validity, consistency, uniqueness, timeliness, lineage, and reconciliation.",
+    "tags": [
+      "finance",
+      "industry-data",
+      "data",
+      "analytics",
+      "metrics",
+      "quality"
+    ],
+    "domain": "Industry and Finance Data"
+  },
+  {
+    "slug": "finance-metric-layer",
+    "title": "Finance Metric Layer",
+    "category": "industry-data",
+    "description": "Define governed finance metrics with formulas, grain, dimensions, owners, and tests.",
+    "tags": [
+      "finance",
+      "industry-data",
+      "data",
+      "analytics",
+      "metrics",
+      "metric",
+      "layer"
+    ],
+    "domain": "Industry and Finance Data"
+  },
+  {
+    "slug": "erp-ledger-ingestion",
+    "title": "ERP and Ledger Ingestion",
+    "category": "industry-data",
+    "description": "Ingest finance data with schema mapping, control totals, lineage, and incremental load controls.",
+    "tags": [
+      "finance",
+      "industry-data",
+      "data",
+      "analytics",
+      "metrics",
+      "erp",
+      "ledger",
+      "ingestion",
+      "and"
+    ],
+    "domain": "Industry and Finance Data"
+  },
+  {
+    "slug": "financial-document-extraction",
+    "title": "Financial Document Extraction",
+    "category": "industry-data",
+    "description": "Extract structured fields from invoices, statements, contracts, and reports with confidence and review.",
+    "tags": [
+      "finance",
+      "industry-data",
+      "data",
+      "analytics",
+      "metrics",
+      "financial",
+      "document",
+      "extraction"
+    ],
+    "domain": "Industry and Finance Data"
+  },
+  {
+    "slug": "finance-anomaly-detection",
+    "title": "Finance Anomaly Detection",
+    "category": "industry-data",
+    "description": "Detect explainable transaction and KPI anomalies with baselines, thresholds, and case workflow.",
+    "tags": [
+      "finance",
+      "industry-data",
+      "data",
+      "analytics",
+      "metrics",
+      "anomaly",
+      "detection"
+    ],
+    "domain": "Industry and Finance Data"
+  }
+]
